@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第21课 · 我喝了半斤白酒 · 游戏乐园</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', 'Roboto', 'Noto Sans SC', sans-serif;
+            background: linear-gradient(145deg, #f9e7b2 0%, #f5d78c 100%);
+            min-height: 100vh; display: flex; flex-direction: column;
+            align-items: center; padding: 20px 16px 40px;
+        }
+        h1 { font-size: 2rem; color: #6b3f1f; text-shadow: 2px 2px 0 #fceab8; margin-bottom: 6px; letter-spacing: 2px; }
+        .subhead {
+            color: #8b5e3c; font-weight: 500; margin-bottom: 24px; font-size: 1.1rem;
+            background: #fff6e0cc; padding: 6px 18px; border-radius: 40px;
+            backdrop-filter: blur(4px); box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .game-selector { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin-bottom: 24px; }
+        .game-btn {
+            background: #fff6e0; border: 3px solid #c49a6c; color: #5a3a1a;
+            padding: 12px 28px; font-size: 1.15rem; font-weight: 700; border-radius: 60px;
+            cursor: pointer; box-shadow: 0 6px 0 #b08050, 0 8px 16px rgba(0,0,0,0.15);
+            transition: all 0.08s ease; letter-spacing: 1px;
+        }
+        .game-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #b08050, 0 6px 12px rgba(0,0,0,0.1); }
+        .game-btn.active { background: #6b3f1f; color: #ffefcf; border-color: #3d2a14; box-shadow: 0 6px 0 #2f1f0e; }
+        .game-container {
+            width: 100%; max-width: 960px; background: #fffcf0; border-radius: 48px 48px 32px 32px;
+            padding: 28px 28px 32px; box-shadow: 0 20px 40px rgba(90, 60, 20, 0.25), inset 0 1px 4px #ffffffdd;
+            border: 2px solid #e9d6b0; position: relative; min-height: 500px; display: flex; flex-direction: column;
+        }
+        .game-panel { display: none; flex-direction: column; flex: 1; }
+        .game-panel.active { display: flex; }
+        .panel-title { font-size: 1.4rem; color: #6b3f1f; margin-bottom: 18px; border-left: 10px solid #c49a6c; padding-left: 18px; font-weight: 700; }
+        .score-bar {
+            display: flex; justify-content: space-between; background: #f2e3c6;
+            padding: 10px 22px; border-radius: 40px; margin-bottom: 20px;
+            font-weight: 700; color: #4d2e12; font-size: 1.1rem;
+        }
+        /* 词汇 */
+        .word-question {
+            background: #fdf6e9; padding: 24px 20px; border-radius: 28px;
+            box-shadow: inset 0 2px 8px #e6d5b8, 0 6px 0 #d4bb97;
+            margin-bottom: 18px; text-align: center;
+        }
+        .word-display { font-size: 2.6rem; font-weight: 800; color: #3e2a12; margin-bottom: 6px; letter-spacing: 2px; }
+        .word-pinyin { font-size: 1.2rem; color: #9b7a5a; margin-bottom: 10px; font-style: italic; }
+        .word-audio-btn {
+            background: #e9d6b0; border: none; padding: 8px 22px; border-radius: 40px;
+            font-size: 1rem; font-weight: 600; color: #4d2e12; cursor: pointer;
+            margin: 6px 0 4px; box-shadow: 0 3px 0 #b99e7a; transition: 0.1s;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .word-audio-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #b99e7a; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 18px; }
+        .option-btn {
+            background: #f2e3c6; border: 2px solid #c7aa7c; padding: 16px 8px; border-radius: 24px;
+            font-size: 1.2rem; font-weight: 600; color: #3e2a12; cursor: pointer;
+            transition: 0.1s; box-shadow: 0 5px 0 #b99e7a; text-align: center; word-break: break-word;
+        }
+        .option-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #b99e7a; }
+        .option-btn.correct { background: #b6e3b6; border-color: #4a9e4a; box-shadow: 0 5px 0 #3d7a3d; }
+        .option-btn.wrong { background: #f4b6b6; border-color: #c44; box-shadow: 0 5px 0 #a33; }
+        .option-btn:disabled { opacity: 0.7; cursor: default; transform: translateY(3px); box-shadow: 0 2px 0 #b99e7a; }
+        .feedback { font-size: 1.2rem; font-weight: 700; margin-top: 14px; min-height: 2rem; color: #4d2e12; }
+        .next-btn {
+            background: #6b3f1f; color: #ffefcf; border: none; padding: 14px 28px;
+            font-size: 1.2rem; font-weight: 700; border-radius: 50px; cursor: pointer;
+            align-self: center; margin-top: 16px; box-shadow: 0 6px 0 #2f1f0e; transition: 0.1s; letter-spacing: 1px;
+        }
+        .next-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #2f1f0e; }
+        .next-btn:disabled { opacity: 0.4; transform: translateY(4px); box-shadow: 0 2px 0 #2f1f0e; cursor: not-allowed; }
+        /* 排序 */
+        .sort-sentence {
+            background: #fdf6e9; padding: 18px; border-radius: 24px; margin-bottom: 18px;
+            box-shadow: inset 0 1px 6px #e6d5b8;
+        }
+        .sort-hint { font-size: 1rem; color: #9b7a5a; margin-bottom: 6px; }
+        .word-pool {
+            display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; min-height: 50px;
+            padding: 8px 4px; background: #efe1cb; border-radius: 30px; justify-content: center;
+        }
+        .word-chip {
+            background: #fff6e0; border: 2px solid #b99e7a; padding: 8px 18px; border-radius: 40px;
+            font-size: 1.2rem; font-weight: 600; color: #3e2a12; cursor: pointer;
+            box-shadow: 0 3px 0 #a88964; transition: 0.08s; user-select: none;
+        }
+        .word-chip:active { transform: translateY(2px); box-shadow: 0 1px 0 #a88964; }
+        .word-chip.used { opacity: 0.3; pointer-events: none; box-shadow: none; transform: translateY(3px); }
+        .sort-answer {
+            display: flex; flex-wrap: wrap; gap: 10px; min-height: 56px; background: #e6d5b8;
+            border-radius: 30px; padding: 12px 16px; margin: 8px 0; align-items: center;
+            border: 2px dashed #b99e7a;
+        }
+        .sort-answer .word-chip { background: #b6d9f0; border-color: #4a7a9e; box-shadow: 0 3px 0 #3a6a8e; }
+        .sort-actions { display: flex; gap: 12px; justify-content: flex-end; }
+        .small-btn {
+            background: #e9d6b0; border: none; padding: 8px 20px; border-radius: 30px;
+            font-weight: 600; color: #4d2e12; cursor: pointer; box-shadow: 0 3px 0 #b99e7a; font-size: 1rem;
+        }
+        .small-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #b99e7a; }
+        .small-btn:disabled { opacity: 0.5; transform: translateY(3px); box-shadow: 0 1px 0 #b99e7a; cursor: not-allowed; }
+        /* 判断 */
+        .judge-card {
+            background: #fdf6e9; padding: 20px; border-radius: 28px; margin-bottom: 16px;
+            box-shadow: inset 0 1px 6px #e6d5b8; text-align: center;
+        }
+        .judge-image { font-size: 3.4rem; margin-bottom: 4px; }
+        .judge-sentence {
+            font-size: 1.6rem; font-weight: 700; color: #3e2a12; margin: 12px 0;
+            background: #f2e3c6; padding: 10px 16px; border-radius: 20px;
+        }
+        .judge-actions { display: flex; gap: 18px; justify-content: center; margin: 14px 0; }
+        .judge-btn {
+            padding: 12px 38px; border-radius: 60px; font-size: 1.3rem; font-weight: 700;
+            border: none; cursor: pointer; box-shadow: 0 5px 0 #a88964; transition: 0.08s;
+        }
+        .judge-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #a88964; }
+        .judge-btn.true { background: #b6e3b6; color: #1f4a1f; }
+        .judge-btn.false { background: #f4b6b6; color: #6b1f1f; }
+        .judge-btn:disabled { opacity: 0.6; transform: translateY(3px); box-shadow: 0 2px 0 #a88964; cursor: default; }
+        .judge-feedback { font-size: 1.1rem; font-weight: 600; min-height: 1.8rem; color: #4d2e12; }
+        .judge-list { display: flex; flex-direction: column; gap: 12px; }
+        /* 通用 */
+        .hidden { display: none !important; }
+        .final-message { text-align: center; padding: 30px 10px; font-size: 1.5rem; font-weight: 700; color: #3e2a12; }
+        .final-message small { display: block; font-size: 1rem; font-weight: 400; margin-top: 12px; color: #7a5e3e; }
+        .inline-feedback { font-size: 1.1rem; font-weight: 600; margin-top: 4px; min-height: 1.6rem; }
+        .inline-feedback.correct { color: #2a7a2a; }
+        .inline-feedback.wrong { color: #b33; }
+        @media (max-width: 600px) {
+            .options-grid { grid-template-columns: 1fr; }
+            .word-display { font-size: 2rem; }
+            .game-container { padding: 18px; }
+            .judge-sentence { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+    <h1>🍶 第21课 · 我喝了半斤白酒</h1>
+    <div class="subhead">🎮 词汇 · 排序 · 判断 · 游戏乐园</div>
+
+    <div class="game-selector">
+        <button class="game-btn active" data-game="vocab">📚 词汇闯关</button>
+        <button class="game-btn" data-game="sort">🧩 连词成句</button>
+        <button class="game-btn" data-game="judge">🔍 看图判断</button>
+    </div>
+
+    <div class="game-container">
+        <!-- 游戏1 -->
+        <div id="vocabPanel" class="game-panel active">
+            <div class="panel-title">📚 词汇闯关 · 中越 / 越中</div>
+            <div class="score-bar">
+                <span>得分: <span id="vocabScore">0</span></span>
+                <span>第 <span id="vocabIndex">1</span> / <span id="vocabTotal">10</span> 题</span>
+            </div>
+            <div id="vocabQuestionArea"></div>
+            <div id="vocabFeedback" class="feedback"></div>
+            <button id="vocabNextBtn" class="next-btn" disabled>下一题 ▶</button>
+            <div id="vocabFinal" class="final-message hidden"></div>
+        </div>
+
+        <!-- 游戏2 -->
+        <div id="sortPanel" class="game-panel">
+            <div class="panel-title">🧩 连词成句 · 点击词语造句</div>
+            <div class="score-bar">
+                <span>得分: <span id="sortScore">0</span></span>
+                <span>第 <span id="sortIndex">1</span> / <span id="sortTotal">5</span> 句</span>
+            </div>
+            <div id="sortQuestionArea"></div>
+            <div id="sortFeedback" class="feedback"></div>
+            <div style="display:flex; justify-content:space-between; margin-top:12px;">
+                <button id="sortCheckBtn" class="small-btn">✅ 检查</button>
+                <button id="sortNextBtn" class="next-btn" disabled>下一句 ▶</button>
+            </div>
+            <div id="sortFinal" class="final-message hidden"></div>
+        </div>
+
+        <!-- 游戏3 · 已改为连续5题，无tab -->
+        <div id="judgePanel" class="game-panel">
+            <div class="panel-title">🔍 看图判断 · 对还是错？</div>
+            <div class="score-bar">
+                <span>得分: <span id="judgeScore">0</span></span>
+                <span>第 <span id="judgeIndex">1</span> / <span id="judgeTotal">5</span> 题</span>
+            </div>
+            <div id="judgeList" class="judge-list"></div>
+            <div id="judgeFinal" class="final-message hidden"></div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- 声音 ----------
+            let audioCtx = null;
+            function initAudio() {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+            }
+            function playTone(freq, duration, type = 'sine', volume = 0.2) {
+                try {
+                    initAudio();
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = type; osc.frequency.value = freq;
+                    gain.gain.value = volume;
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(); osc.stop(audioCtx.currentTime + duration);
+                } catch (e) {}
+            }
+            function playCorrect() { playTone(880, 0.12, 'sine', 0.2); setTimeout(() => playTone(1320, 0.18, 'sine', 0.2), 100); }
+            function playWrong() { playTone(280, 0.2, 'sawtooth', 0.12); }
+            function playClick() { playTone(600, 0.06, 'square', 0.08); }
+            function speakChinese(text) {
+                if (!window.speechSynthesis) return;
+                window.speechSynthesis.cancel();
+                const uttr = new SpeechSynthesisUtterance(text);
+                uttr.lang = 'zh-CN'; uttr.rate = 0.85;
+                const voices = window.speechSynthesis.getVoices();
+                const zh = voices.find(v => v.lang === 'zh-CN' || v.lang === 'zh_CN');
+                if (zh) uttr.voice = zh;
+                window.speechSynthesis.speak(uttr);
+            }
+
+            // ---------- 游戏1 词汇 ----------
+            const vocabData = [
+                { question: '生气', pinyin: 'shēng qì', answer: 'bực, tức giận', options: ['vui vẻ', 'bực, tức giận', 'buồn ngủ', 'đói bụng'], type: 'zh2vi' },
+                { question: '脸色', pinyin: 'liǎn sè', answer: 'sắc mặt', options: ['sắc mặt', 'màu áo', 'khuôn mặt tròn', 'nước da trắng'], type: 'zh2vi' },
+                { question: '熬夜', pinyin: 'áo yè', answer: 'thức đêm', options: ['ngủ sớm', 'thức đêm', 'ngủ trưa', 'dậy muộn'], type: 'zh2vi' },
+                { question: '斤', pinyin: 'jīn', answer: 'nửa kg (0.5kg)', options: ['mét', 'lít', 'nửa kg (0.5kg)', 'km'], type: 'zh2vi' }, // ✅ 修正
+                { question: '白酒', pinyin: 'bái jiǔ', answer: 'rượu trắng', options: ['bia trắng', 'rượu trắng', 'nước trắng', 'sữa trắng'], type: 'zh2vi' },
+                { question: 'bực, tức giận', pinyin: '', answer: '生气', options: ['高兴', '生气', '热情', '困'], type: 'vi2zh' },
+                { question: 'sắc mặt', pinyin: '', answer: '脸色', options: ['颜色', '脸色', '头', '饭'], type: 'vi2zh' },
+                { question: 'thức đêm', pinyin: '', answer: '熬夜', options: ['熬夜', '睡觉', '起床', '休息'], type: 'vi2zh' },
+                { question: 'rượu trắng', pinyin: '', answer: '白酒', options: ['白酒', '啤酒', '红酒', '水'], type: 'vi2zh' },
+                { question: 'ép rượu, chuốc rượu', pinyin: '', answer: '劝酒', options: ['倒酒', '劝酒', '喝酒', '请客'], type: 'vi2zh' }
+            ];
+            let vocabState = { index: 0, score: 0, answered: false };
+            const vocabQuestionArea = document.getElementById('vocabQuestionArea');
+            const vocabFeedback = document.getElementById('vocabFeedback');
+            const vocabNextBtn = document.getElementById('vocabNextBtn');
+            const vocabScoreEl = document.getElementById('vocabScore');
+            const vocabIndexEl = document.getElementById('vocabIndex');
+            const vocabTotalEl = document.getElementById('vocabTotal');
+            const vocabFinal = document.getElementById('vocabFinal');
+            vocabTotalEl.textContent = vocabData.length;
+
+            function renderVocab() {
+                if (vocabState.index >= vocabData.length) {
+                    vocabQuestionArea.innerHTML = '';
+                    vocabFeedback.textContent = '';
+                    vocabNextBtn.disabled = true;
+                    vocabFinal.classList.remove('hidden');
+                    vocabFinal.innerHTML = `🎉 词汇闯关完成！<br>得分: ${vocabState.score} / ${vocabData.length}<br><small>太棒了！</small>`;
+                    return;
+                }
+                const q = vocabData[vocabState.index];
+                vocabState.answered = false;
+                vocabNextBtn.disabled = true;
+                vocabFeedback.textContent = '';
+                vocabFinal.classList.add('hidden');
+                vocabQuestionArea.innerHTML = `
+                    <div class="word-question">
+                        <div class="word-display">${q.question}</div>
+                        ${q.pinyin ? `<div class="word-pinyin">${q.pinyin}</div>` : ''}
+                        ${q.type === 'zh2vi' ? `<button class="word-audio-btn" onclick="speakChinese('${q.question}')">🔊 听发音</button>` : ''}
+                    </div>
+                    <div class="options-grid">
+                        ${q.options.map((opt, i) => `<button class="option-btn" data-opt-index="${i}">${opt}</button>`).join('')}
+                    </div>`;
+                document.querySelectorAll('#vocabQuestionArea .option-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        if (vocabState.answered) return;
+                        vocabState.answered = true;
+                        const selected = btn.textContent.trim();
+                        const isCorrect = selected === q.answer;
+                        if (isCorrect) {
+                            btn.classList.add('correct');
+                            vocabState.score++; vocabScoreEl.textContent = vocabState.score;
+                            playCorrect(); vocabFeedback.textContent = '✅ 正确！';
+                        } else {
+                            btn.classList.add('wrong');
+                            document.querySelectorAll('#vocabQuestionArea .option-btn').forEach(b => {
+                                if (b.textContent.trim() === q.answer) b.classList.add('correct');
+                            });
+                            playWrong(); vocabFeedback.textContent = `❌ 不对哦，正确答案是：${q.answer}`;
+                        }
+                        document.querySelectorAll('#vocabQuestionArea .option-btn').forEach(b => b.disabled = true);
+                        vocabNextBtn.disabled = false;
+                        vocabIndexEl.textContent = vocabState.index + 1;
+                    });
+                });
+            }
+            vocabNextBtn.addEventListener('click', () => {
+                playClick(); vocabState.index++;
+                vocabIndexEl.textContent = Math.min(vocabState.index + 1, vocabData.length);
+                renderVocab();
+            });
+
+            // ---------- 游戏2 排序 ----------
+            const sortData = [
+                { words: ['我', '喝了', '半斤', '白酒'], correct: ['我喝了半斤白酒。'] },
+                { words: ['昨天', '我', '去', '一个', '中国朋友家', '吃饭'], correct: ['昨天我去一个中国朋友家吃饭。', '我昨天去一个中国朋友家吃饭。'] }, // ✅ 2 đáp án
+                { words: ['他们', '太', '热情', '了', '不停地', '给我', '倒酒'], correct: ['他们太热情了，不停地给我倒酒。'] },
+                { words: ['有的', '中国人', '请客', '的时候', '喜欢', '劝酒'], correct: ['有的中国人请客的时候喜欢劝酒。'] },
+                { words: ['你', '好像', '还', '很', '困', '继续', '睡', '吧'], correct: ['你好像还很困，继续睡吧！'] }
+            ];
+            let sortState = { index: 0, score: 0, selectedWords: [], availableWords: [] };
+            const sortQuestionArea = document.getElementById('sortQuestionArea');
+            const sortFeedback = document.getElementById('sortFeedback');
+            const sortNextBtn = document.getElementById('sortNextBtn');
+            const sortCheckBtn = document.getElementById('sortCheckBtn');
+            const sortScoreEl = document.getElementById('sortScore');
+            const sortIndexEl = document.getElementById('sortIndex');
+            const sortTotalEl = document.getElementById('sortTotal');
+            const sortFinal = document.getElementById('sortFinal');
+            sortTotalEl.textContent = sortData.length;
+
+            function shuffleArray(arr) {
+                const a = [...arr];
+                for (let i = a.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [a[i], a[j]] = [a[j], a[i]];
+                }
+                return a;
+            }
+
+            function renderSort() {
+                if (sortState.index >= sortData.length) {
+                    sortQuestionArea.innerHTML = '';
+                    sortFeedback.textContent = '';
+                    sortNextBtn.disabled = true;
+                    sortCheckBtn.disabled = true;
+                    sortFinal.classList.remove('hidden');
+                    sortFinal.innerHTML = `🎉 连词成句完成！<br>得分: ${sortState.score} / ${sortData.length}<br><small>太棒了！</small>`;
+                    return;
+                }
+                const q = sortData[sortState.index];
+                sortState.selectedWords = [];
+                sortState.availableWords = shuffleArray(q.words);
+                sortNextBtn.disabled = true;
+                sortCheckBtn.disabled = false;
+                sortFeedback.textContent = '';
+                sortFinal.classList.add('hidden');
+                renderSortArea();
+            }
+
+            function renderSortArea() {
+                const q = sortData[sortState.index];
+                const poolHtml = sortState.availableWords.map((w, i) => {
+                    const used = sortState.selectedWords.includes(w + '_' + i) ? 'used' : '';
+                    return `<span class="word-chip ${used}" data-word="${w}" data-idx="${i}">${w}</span>`;
+                }).join('');
+                const answerHtml = sortState.selectedWords.map((w, i) => {
+                    const word = w.split('_')[0];
+                    return `<span class="word-chip" data-answer-idx="${i}">${word}</span>`;
+                }).join('');
+
+                sortQuestionArea.innerHTML = `
+                    <div class="sort-sentence">
+                        <div class="sort-hint">🔹 Câu hỏi: Hãy sắp xếp thành câu đúng (có dấu chấm cuối câu)</div>
+                        <div class="word-pool" id="wordPool">${poolHtml}</div>
+                        <div class="sort-hint">🔸 Khu vực tạo câu (nhấn vào từ để xóa)</div>
+                        <div class="sort-answer" id="sortAnswer">${answerHtml}</div>
+                    </div>`;
+                document.querySelectorAll('#wordPool .word-chip').forEach(chip => {
+                    chip.addEventListener('click', () => {
+                        if (chip.classList.contains('used')) return;
+                        sortState.selectedWords.push(chip.dataset.word + '_' + chip.dataset.idx);
+                        playClick(); renderSortArea();
+                    });
+                });
+                document.querySelectorAll('#sortAnswer .word-chip').forEach(chip => {
+                    chip.addEventListener('click', () => {
+                        const idx = parseInt(chip.dataset.answerIdx);
+                        sortState.selectedWords.splice(idx, 1);
+                        playClick(); renderSortArea();
+                    });
+                });
+            }
+
+            sortCheckBtn.addEventListener('click', () => {
+                const q = sortData[sortState.index];
+                const userSentence = sortState.selectedWords.map(w => w.split('_')[0]).join('');
+                // 标准化：去除标点空格，比较
+                const normalize = s => s.replace(/[。！？，、\s]/g, '');
+                const userClean = normalize(userSentence);
+                const isCorrect = q.correct.some(c => normalize(c) === userClean);
+                if (isCorrect) {
+                    sortState.score++; sortScoreEl.textContent = sortState.score;
+                    playCorrect(); sortFeedback.textContent = '✅ 完全正确！';
+                    sortCheckBtn.disabled = true; sortNextBtn.disabled = false;
+                } else {
+                    playWrong(); sortFeedback.textContent = `❌ 再试试看，注意标点和顺序哦。`;
+                }
+            });
+            sortNextBtn.addEventListener('click', () => {
+                playClick(); sortState.index++;
+                sortIndexEl.textContent = Math.min(sortState.index + 1, sortData.length);
+                renderSort();
+            });
+
+            // ---------- 游戏3 判断 · 连续5题 ----------
+            const judgeData = [
+                { image: '😵‍💫💻', sentence: '他昨天熬夜了，今天脸色很好。', correct: false, explanation: '脸色不太好。' },
+                { image: '🍶🤕', sentence: '我喝了半斤白酒，头很疼。', correct: true, explanation: '正确。' },
+                { image: '🍻😊', sentence: '他们太热情了，不停地给我倒酒。', correct: true, explanation: '正确。' },
+                { image: '🇨🇳🍷', sentence: '有的中国人请客的时候喜欢劝酒。', correct: true, explanation: '正确。' },
+                { image: '😴🛌', sentence: '你好像很困，继续睡吧！', correct: true, explanation: '正确。' }
+            ];
+            const judgeList = document.getElementById('judgeList');
+            const judgeScoreEl = document.getElementById('judgeScore');
+            const judgeIndexEl = document.getElementById('judgeIndex');
+            const judgeTotalEl = document.getElementById('judgeTotal');
+            const judgeFinal = document.getElementById('judgeFinal');
+            judgeTotalEl.textContent = judgeData.length;
+
+            function renderJudgeAll() {
+                // 渲染所有题目为连续卡片
+                let html = '';
+                judgeData.forEach((q, idx) => {
+                    html += `
+                        <div class="judge-card" data-qidx="${idx}">
+                            <div class="judge-image">${q.image}</div>
+                            <div class="judge-sentence">${q.sentence}</div>
+                            <div class="judge-actions">
+                                <button class="judge-btn true" data-answer="true" data-qidx="${idx}">✅ 对</button>
+                                <button class="judge-btn false" data-answer="false" data-qidx="${idx}">❌ 错</button>
+                            </div>
+                            <div class="inline-feedback" id="judgeFb${idx}"></div>
+                        </div>`;
+                });
+                judgeList.innerHTML = html;
+
+                // 事件绑定
+                judgeList.querySelectorAll('.judge-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const qidx = parseInt(this.dataset.qidx);
+                        const q = judgeData[qidx];
+                        const card = this.closest('.judge-card');
+                        const fb = card.querySelector('.inline-feedback');
+                        const isTrue = this.dataset.answer === 'true';
+                        const isCorrect = isTrue === q.correct;
+
+                        // 禁用本卡片所有按钮
+                        card.querySelectorAll('.judge-btn').forEach(b => b.disabled = true);
+
+                        // 显示结果
+                        if (isCorrect) {
+                            this.style.background = '#b6e3b6';
+                            playCorrect();
+                            fb.textContent = '✅ 判断正确！' + (q.explanation ? ' ' + q.explanation : '');
+                            fb.className = 'inline-feedback correct';
+                        } else {
+                            this.style.background = '#f4b6b6';
+                            playWrong();
+                            fb.textContent = `❌ 不对哦，正确答案是：${q.correct ? '对' : '错'}。${q.explanation || ''}`;
+                            fb.className = 'inline-feedback wrong';
+                        }
+
+                        // 更新得分和进度
+                        updateJudgeScore();
+                    });
+                });
+            }
+
+            let judgeAnsweredCount = 0;
+            let judgeScore = 0;
+
+            function updateJudgeScore() {
+                judgeAnsweredCount = 0;
+                judgeScore = 0;
+                judgeData.forEach((q, idx) => {
+                    const card = judgeList.querySelector(`.judge-card[data-qidx="${idx}"]`);
+                    if (!card) return;
+                    const btns = card.querySelectorAll('.judge-btn');
+                    if (btns.length && btns[0].disabled) {
+                        judgeAnsweredCount++;
+                        const fb = card.querySelector('.inline-feedback');
+                        if (fb && fb.classList.contains('correct')) judgeScore++;
+                    }
+                });
+                judgeScoreEl.textContent = judgeScore;
+                judgeIndexEl.textContent = Math.min(judgeAnsweredCount + 1, judgeData.length);
+
+                if (judgeAnsweredCount === judgeData.length) {
+                    judgeFinal.classList.remove('hidden');
+                    judgeFinal.innerHTML = `🎉 看图判断完成！<br>得分: ${judgeScore} / ${judgeData.length}<br><small>太棒了！</small>`;
+                }
+            }
+
+            // 初始化所有
+            renderVocab();
+            renderSort();
+            renderJudgeAll();
+            updateJudgeScore();
+
+            window.speakChinese = speakChinese;
+            if (window.speechSynthesis) window.speechSynthesis.getVoices();
+
+            // 切换面板
+            document.querySelectorAll('.game-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    playClick();
+                    document.querySelectorAll('.game-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    document.querySelectorAll('.game-panel').forEach(p => p.classList.remove('active'));
+                    const map = { vocab: 'vocabPanel', sort: 'sortPanel', judge: 'judgePanel' };
+                    document.getElementById(map[btn.dataset.game]).classList.add('active');
+                });
+            });
+        })();
+    </script>
+</body>
+</html>
